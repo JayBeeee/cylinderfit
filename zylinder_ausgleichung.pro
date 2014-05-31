@@ -45,7 +45,13 @@ else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/lib/armadillo-4.300.6/e
 
 
 SOURCES += src/main.cpp \
+    src/dataimporter.cpp \
+    src/point3d.cpp \
+    src/cylinder.cpp
 
 HEADERS += \
-    lib/armadillo-4.300.6/include/armadillo
+    lib/armadillo-4.300.6/include/armadillo \
+    src/dataimporter.h \
+    src/point3d.h \
+    src/cylinder.h
 
