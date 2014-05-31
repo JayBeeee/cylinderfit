@@ -7,6 +7,7 @@
 #include "point3d.h"
 #include <QDebug>
 #include <QtCore/QtMath> //qSin, qCos.....
+#include <random>
 
 using namespace std;
 using namespace arma;

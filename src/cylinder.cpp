@@ -15,9 +15,13 @@ bool Cylinder::fit(QList<Point3D> points)
     //da 47000 Punkte die B-Matrix sprengen --> zwar konnte man in Armadillp
     //die Einstellungen vornehmen um auf 64bit um zustellen,
     //jedoch reichen selbst 16GB-Arbeitsspeicher nicht aus!
+
+    std::default_random_engine generator;
+    std::uniform_int_distribution<int> distribution(0,points.size());
+
     for(int i=0; i<1000;i++)
     {
-         int randomIndex = (std::rand()/RAND_MAX)*(points.size()-0)+0;
+         int randomIndex =  distribution(generator);
          samplePoints.append(points.at(randomIndex));
     }
 
@@ -51,6 +55,11 @@ bool Cylinder::fit(QList<Point3D> points)
         L(i*3+1)=samplePoints.at(i).xyz->at(1);
         L(i*3+2)=samplePoints.at(i).xyz->at(2);
     }
+
+
+
+    //TODO do while iteration
+   // L.print();
     L0 = L;
 
 
@@ -94,26 +103,21 @@ bool Cylinder::fit(QList<Point3D> points)
         double a1 = tmpX0 + tmpX * qCos(tmpBeta) + tmpY * qSin(tmpAlpha) * qSin(tmpBeta) + tmpZ * qCos(tmpAlpha) * qSin(tmpBeta);
         double a2 = tmpY0 + tmpY * qCos(tmpAlpha) - tmpZ * qSin(tmpAlpha);
 
+        //radius,X0,Y0,Alpha,Beta
+        A(i, 0)= 1.0; //radius
+        A(i, 1)= -1.0 * a1 / qSqrt(a1*a1 + a2*a2); // X0
+        A(i, 2)= -1.0 * a2 / qSqrt(a1*a1 + a2*a2); // Y0
+        A(i, 3)=   -1.0 * ((tmpY * qSin(tmpBeta) * qCos(tmpAlpha) - tmpZ * qSin(tmpBeta) * qSin(tmpAlpha)) * a1 - (tmpY * qSin(tmpAlpha) + tmpZ * qCos(tmpAlpha)) * a2) / qSqrt(a1*a1 + a2*a2);
+        A(i, 4)= -1.0 * (tmpY * qSin(tmpAlpha) * qCos(tmpBeta) - tmpX * qSin(tmpBeta) + tmpZ * qCos(tmpAlpha) * qCos(tmpBeta)) * a1 / qSqrt(a1*a1 + a2*a2); // beta
 
-        B(i, i*3, -1.0 * qCos(tmpBeta) * a1 / qSqrt(a1*a1 + a2*a2)); // x
-        B(i, i*3+1, -1.0 * (qSin(tmpAlpha) * qSin(tmpBeta) * a1 + qCos(tmpAlpha) * a2) / qSqrt(a1*a1 + a2*a2)); // y
-        B(i, i*3+2, -1.0 * (qCos(tmpAlpha) * qSin(tmpBeta) * a1 - qSin(tmpAlpha) * a2) / qSqrt(a1*a1 + a2*a2)); // z
+        B(i, i*3)= -1.0 * qCos(tmpBeta) * a1 / qSqrt(a1*a1 + a2*a2); // x
+        B(i, i*3+1)= -1.0 * (qSin(tmpAlpha) * qSin(tmpBeta) * a1 + qCos(tmpAlpha) * a2) / qSqrt(a1*a1 + a2*a2); // y
+        B(i, i*3+2)= -1.0 * (qCos(tmpAlpha) * qSin(tmpBeta) * a1 - qSin(tmpAlpha) * a2) / qSqrt(a1*a1 + a2*a2); // z
 
-
-
-
-        A(i, 0, 1.0); //r
-        A(i, 1, -1.0 * a1 / qSqrt(a1*a1 + a2*a2)); // X0
-        A(i, 2, -1.0 * a2 / qSqrt(a1*a1 + a2*a2)); // Y0
-        A(i, 3, -1.0 * ((tmpY * qSin(tmpBeta) * qCos(tmpAlpha) - tmpZ * qSin(tmpBeta) * qSin(tmpAlpha)) * a1 - (tmpY * qSin(tmpAlpha) + tmpZ * qCos(tmpAlpha)) * a2) / qSqrt(a1*a1 + a2*a2)); // alpha
-        A(i, 4, -1.0 * (tmpY * qSin(tmpAlpha) * qCos(tmpBeta) - tmpX * qSin(tmpBeta) + tmpZ * qCos(tmpAlpha) * qCos(tmpBeta)) * a1 / qSqrt(a1*a1 + a2*a2)); // beta
     }
 
 
-
-
-
-    return false;
+    return true;
 }
 
 void Cylinder::calcApproximation(QList<Point3D> points)
