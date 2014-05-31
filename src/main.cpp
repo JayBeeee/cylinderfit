@@ -12,19 +12,6 @@ int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
-      /*mat A = randu<mat>(4,5);
-      mat B = randu<mat>(4,5);
-
-      vec c(3);
-      c(0)=5;
-      c(1)=4;
-      c(2)=13;
-
-      mat R=A*B.t();
-
-      c.print();
-      R.print();*/
-
     QString path = qApp->applicationDirPath();
 
     path=QString(path+"/zylinder01.pts");
@@ -39,7 +26,7 @@ int main(int argc, char *argv[])
 
      qDebug()<<QString(QString::number(points.size())+" Punkte eingelesen");
 
-     qDebug()<<"starte Auslgiechung";
+     qDebug()<<"starte Auslgeichung";
 
      Cylinder c;
      c.fit(points);

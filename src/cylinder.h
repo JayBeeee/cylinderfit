@@ -5,6 +5,8 @@
 #include <armadillo>
 #include <QList>
 #include "point3d.h"
+#include <QDebug>
+#include <QtCore/QtMath> //qSin, qCos.....
 
 using namespace std;
 using namespace arma;
