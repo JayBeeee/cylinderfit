@@ -163,6 +163,56 @@ bool Cylinder::fit(QList<Point3D> points)
 
 
 
+    //rechte Seite  (Beobachtungen+Unbekannte als Dimension)
+    vec rechteSeite(n+5);
+    for(int i = 0; i < n; i++){
+        rechteSeite(i)= w(i);
+    }
+
+    //Aufstellen der Normalgleichungsmatrix N-Matric
+
+    mat B_BT = B * B.t();
+    mat AT = A.t();
+    mat N(n+5, n+5);
+    for(int i = 0; i < (n+5); i++){
+        for(int j = 0; j < (n+5); j++)
+        {
+            if(i < n && j < n)
+            {
+                N(i, j)= B_BT(i, j);
+            }else if(i < n && j >= n)
+            {
+                N(i, j)= A(i, (j-n));
+            }else if(i >= n && j < n)
+            {
+                N(i, j)= AT((i-n), j);
+            }else if(i >= n && j >= n)
+            {
+                N(i, j)= 0.0;
+            }
+        }
+    }
+
+    //Inverse von N
+    mat N_inv=N.i();
+
+    //Ausgleichungsrechnung
+     vec ergebnis = -1.0 * N_inv * rechteSeite;
+
+    //Weiterverarbeitung der Ergebnisse der Ausgleichung
+
+     //get results
+     vec k(n);
+     //Zuschläge für die Unbekannten stehen unten im Ergebnisvektor
+     for(int i = n; i < n+5; i++){
+         x(i-n)= ergebnis(i);
+     }
+     for(int i = 0; i < n; i++){
+         k(i)=ergebnis(i);
+     }
+
+     v = B.t() * k;
+
 
     return true;
 }
