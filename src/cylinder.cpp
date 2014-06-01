@@ -19,11 +19,36 @@ bool Cylinder::fit(QList<Point3D> points)
     std::default_random_engine generator;
     std::uniform_int_distribution<int> distribution(0,points.size());
 
+    int indizes[1000];
     for(int i=0; i<1000;i++)
     {
          int randomIndex =  distribution(generator);
-         samplePoints.append(points.at(randomIndex));
+         indizes[i]=randomIndex;
+         if (i<1)
+         {
+            samplePoints.append(points.at(randomIndex));
+         }
+         else
+         {
+             for (int j=0; j<i;)
+             {
+                if (randomIndex == indizes[j])
+                {
+                    int randomIndex =  distribution(generator);
+                    indizes[i]=randomIndex;
+                    break;
+                }
+                else
+                {
+                    j++;
+                }
+              }
+             samplePoints.append(points.at(randomIndex));
+
+         }
+         // qDebug << samplePoints.at(i).xyz->print;
     }
+
 
     this->calcApproximation(samplePoints);
 
@@ -115,6 +140,28 @@ bool Cylinder::fit(QList<Point3D> points)
         B(i, i*3+2)= -1.0 * (qCos(tmpAlpha) * qSin(tmpBeta) * a1 - qSin(tmpAlpha) * a2) / qSqrt(a1*a1 + a2*a2); // z
 
     }
+
+    //Aufstellen des Widerspruchsvektors
+    for(int i = 0; i < n; i++)
+    {
+
+        vec punkt_i(3);
+        punkt_i(0)=L0(i*3);
+        punkt_i(1)=L0(i*3+1);
+        punkt_i(2)= L0(i*3+2);
+
+
+        vec Ntransform_punkt_i = RotBeta * RotAlpha * punkt_i;
+        Ntransform_punkt_i(0)= Ntransform_punkt_i(0) + X0(1);
+        Ntransform_punkt_i(1)= Ntransform_punkt_i(1) + X0(2);
+
+        //genäherter Radius des Zylinders minus Abstand Punkt i zur z-Achse ist der Widerspruch
+        double widerspruch = X0(0) - qSqrt(Ntransform_punkt_i(0)*Ntransform_punkt_i(0) + Ntransform_punkt_i(1)*Ntransform_punkt_i(1));
+
+        w(i)=widerspruch;
+    }
+
+
 
 
     return true;
