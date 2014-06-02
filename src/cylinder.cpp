@@ -217,6 +217,21 @@ bool Cylinder::fit(QList<Point3D> points)
         v = B.t() * k;
         z++;
     }
+    //v.print();
+    //Verbesserter Beobachtungsvektor
+    L0=L0+v;
+
+    for(int i = 0; i < n; i++)
+    {
+       samplePoints.at(i).setVerb(v(i*3),v(i*3+1),v(i*3+2));
+
+      // samplePoints.at(i).verb->print();
+
+
+    }
+    this->observations=samplePoints;
+
+
      return true;
 }
 

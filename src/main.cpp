@@ -5,6 +5,7 @@
 #include "dataimporter.h"
 #include "cylinder.h"
 
+
 using namespace std;
 using namespace arma;
 
@@ -39,6 +40,15 @@ int main(int argc, char *argv[])
      qDebug()<<QString(" beta "+QString::number(c.nForm.beta));
      qDebug()<<QString(" radius "+QString::number(c.nForm.radius));
 
+     QString export_path = qApp->applicationDirPath();
+
+     export_path=QString(export_path+"/zylinder_ausgabe.pts");
+     qDebug()<<export_path;
+
+
+     QIODevice *export_d = new QFile(export_path);
+
+    DataImporter::exportXYZ(c.observations,export_d);
 
     return a.exec();
 }

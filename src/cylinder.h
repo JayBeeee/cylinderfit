@@ -9,6 +9,7 @@
 #include <QtCore/QtMath> //qSin, qCos.....
 #include <random>
 
+
 using namespace std;
 using namespace arma;
 
@@ -29,6 +30,8 @@ public:
     vec *xyz;
     vec *ijk;
     double radius;
+
+    QList<Point3D> observations;
 
     NormalForm nForm;
 

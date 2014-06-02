@@ -26,6 +26,8 @@ public:
      */
     static QList<Point3D> importXYZ(QIODevice *d);
 
+    static bool exportXYZ(QList<Point3D>,QIODevice *d);
+
 };
 
 #endif // DATAIMPORTER_H

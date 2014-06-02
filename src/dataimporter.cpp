@@ -41,3 +41,24 @@ QList<Point3D> DataImporter::importXYZ(QIODevice *d)
 
     return punktListe;
 }
+
+bool DataImporter::exportXYZ(QList<Point3D> points, QIODevice *d)
+{
+    //open and check device
+    if (!d->open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+        return false;
+    }
+
+     QTextStream ausgabe(d);
+
+     foreach(Point3D p,points)
+     {
+         vec adjustedPoint=p.getAdjustedPoint();
+         ausgabe << adjustedPoint.at(0)<<" "<<adjustedPoint.at(1)<<" "<<adjustedPoint.at(2) <<"\n";
+
+     }
+     d->close();
+
+     return true;
+}
