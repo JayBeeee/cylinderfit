@@ -32,7 +32,7 @@ QList<Point3D> DataImporter::importXYZ(QIODevice *d)
 
             punktListe.append(tmpPoint);
 
-            //qDebug() << QString::number(tmpPoint.xyz->at(0));
+           // qDebug() << QString::number(tmpPoint.xyz->at(2));
         }
 
     }

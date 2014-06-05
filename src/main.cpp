@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
 
     QString path = qApp->applicationDirPath();
 
-    path=QString(path+"/zylinder01.pts");
+    path=QString(path+"/zylinder06.pts");
     qDebug()<<path;
 
 

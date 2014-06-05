@@ -19,8 +19,8 @@ bool Cylinder::fit(QList<Point3D> points)
     std::default_random_engine generator;
     std::uniform_int_distribution<int> distribution(0,points.size());
 
-    int indizes[1000];
-    for(int i=0; i<1000;i++)
+    int indizes[1003];
+ /*   for(int i=0; i<440;i++)
     {
          int randomIndex =  distribution(generator);
          indizes[i]=randomIndex;
@@ -48,12 +48,17 @@ bool Cylinder::fit(QList<Point3D> points)
          }
          // qDebug << samplePoints.at(i).xyz->print;
     }
-
+*/
+    //TODO < länge
+    for (int i=0; i<18; i++)
+    {
+       samplePoints.append(points.at(i));
+    }
 
     this->calcApproximation(samplePoints);
 
     int n = samplePoints.size();
-   // qDebug()<<QString::number(n);
+//qDebug()<<QString::number(n);
 
     vec L(n*3); //Beobachtungen
     vec v(n*3); //Näherungswerte für Verbesserungen
@@ -71,48 +76,60 @@ bool Cylinder::fit(QList<Point3D> points)
     X0(3)=nForm.alpha;
     X0(4)=nForm.beta;
 
-
+    X0.print();
 
 
     //Aufstellen des Beobachtungsvektors
-    for(int i = 0; i < n; i++){
-        L(i*3)=samplePoints.at(i).xyz->at(0);
-        L(i*3+1)=samplePoints.at(i).xyz->at(1);
-        L(i*3+2)=samplePoints.at(i).xyz->at(2);
+    for(int i = 0; i < n; i++)
+    {
+        L.at(i*3)=samplePoints.at(i).xyz->at(0);
+        L.at(i*3+1)=samplePoints.at(i).xyz->at(1);
+        L.at(i*3+2)=samplePoints.at(i).xyz->at(2);
     }
 
-
+//L.print();
 
     //TODO do while iteration
-   // L.print();
-    L0 = L;
 
+    L0= L;
+//  L0.print();
     int z=0;
     int iteration=1;
     while(z < iteration)
     {
         //Unbekannten neu berechnen
         X0=X0+x;
+      //X0.print();
+        //x.print();
+
 
         //Verbesserter Beobachtungsvektor
-        L0=L0+v;
-
+        L0=L0;//+v; //TODO Hier ist ein Fehler wenn man v addiert nimmt er nur den letzten Wert
+    // L0.print();
         // Aufstellen der Rotationsmatrizen
         mat RotAlpha(3, 3);
         mat RotBeta(3, 3);
 
-        //Zeile,Spalte,Inhalt
-        RotAlpha(0, 0, 1.0);
-        RotAlpha(1, 1, qCos(X0.at(3)));
-        RotAlpha(1, 2, -qSin(X0.at(3)));
-        RotAlpha(2, 1, qSin(X0.at(3)));
-        RotAlpha(2, 2, qCos(X0.at(3)));
+        //Zeile,Spalte=Inhalt
+        RotAlpha(0, 0)= 1.0;
+        RotAlpha(0, 1)= 0.0;
+        RotAlpha(0, 2)= 0.0;
+        RotAlpha(1, 0)= 0.0;
+        RotAlpha(1, 1)= cos(X0.at(3));
+        RotAlpha(1, 2)= -sin(X0.at(3));
+        RotAlpha(2, 0)= 0.0;
+        RotAlpha(2, 1)= sin(X0.at(3));
+        RotAlpha(2, 2)= cos(X0.at(3));
 
-        RotBeta(0, 0, qCos(X0.at(4)));
-        RotBeta(0, 2, qSin(X0.at(4)));
-        RotBeta(1, 1, 1.0);
-        RotBeta(2, 0, -qSin(X0.at(4)));
-        RotBeta(2, 2, qCos(X0.at(4)));
+        RotBeta(0, 0)= cos(X0.at(4));
+        RotBeta(0, 1)= 0.0;
+        RotBeta(0, 2)= sin(X0.at(4));
+        RotBeta(1, 0)= 0.0;
+        RotBeta(1, 1)= 1.0;
+        RotBeta(1, 2)= 0.0;
+        RotBeta(2, 0)= sin(X0.at(4));
+        RotBeta(2, 1)= 0.0;
+        RotBeta(2, 2)= cos(X0.at(4));
 
 
         //Aufstellen der A-Funktionalmatrix and B-Ränderungsmatrix
@@ -121,28 +138,34 @@ bool Cylinder::fit(QList<Point3D> points)
         double tmpY0 = X0(2);
         double tmpAlpha = X0(3);
         double tmpBeta = X0(4);
-
+       //  qDebug()<<QString::number(X0(4));
+      // qDebug()<<QString::number(tmpBeta);
         for(int i = 0; i < n; i++)
         {
             double tmpX = L(i*3);
             double tmpY = L(i*3+1);
             double tmpZ = L(i*3+2);
 
-            double a1 = tmpX0 + tmpX * qCos(tmpBeta) + tmpY * qSin(tmpAlpha) * qSin(tmpBeta) + tmpZ * qCos(tmpAlpha) * qSin(tmpBeta);
-            double a2 = tmpY0 + tmpY * qCos(tmpAlpha) - tmpZ * qSin(tmpAlpha);
+            double a1 = tmpX0 + tmpX * cos(tmpBeta) + tmpY * sin(tmpAlpha) * sin(tmpBeta) + tmpZ * cos(tmpAlpha) * sin(tmpBeta);
+            double a2 = tmpY0 + tmpY * cos(tmpAlpha) - tmpZ * sin(tmpAlpha);
+
+             //qDebug()<<QString::number(a2);
 
             //radius,X0,Y0,Alpha,Beta
             A(i, 0)= 1.0; //radius
-            A(i, 1)= -1.0 * a1 / qSqrt(a1*a1 + a2*a2); // X0
-            A(i, 2)= -1.0 * a2 / qSqrt(a1*a1 + a2*a2); // Y0
-            A(i, 3)=   -1.0 * ((tmpY * qSin(tmpBeta) * qCos(tmpAlpha) - tmpZ * qSin(tmpBeta) * qSin(tmpAlpha)) * a1 - (tmpY * qSin(tmpAlpha) + tmpZ * qCos(tmpAlpha)) * a2) / qSqrt(a1*a1 + a2*a2);
-            A(i, 4)= -1.0 * (tmpY * qSin(tmpAlpha) * qCos(tmpBeta) - tmpX * qSin(tmpBeta) + tmpZ * qCos(tmpAlpha) * qCos(tmpBeta)) * a1 / qSqrt(a1*a1 + a2*a2); // beta
+            A(i, 1)= -1.0 * a1 / sqrt(a1*a1 + a2*a2); // X0
+            A(i, 2)= -1.0 * a2 / sqrt(a1*a1 + a2*a2); // Y0
+            A(i, 3)=   -1.0 * ((tmpY * sin(tmpBeta) * cos(tmpAlpha) - tmpZ * sin(tmpBeta) * sin(tmpAlpha)) * a1 - (tmpY * sin(tmpAlpha) + tmpZ * cos(tmpAlpha)) * a2) / sqrt(a1*a1 + a2*a2);
+            A(i, 4)= -1.0 * (tmpY * sin(tmpAlpha) * cos(tmpBeta) - tmpX * sin(tmpBeta) + tmpZ * cos(tmpAlpha) * cos(tmpBeta)) * a1 / sqrt(a1*a1 + a2*a2); // beta
 
-            B(i, i*3)= -1.0 * qCos(tmpBeta) * a1 / qSqrt(a1*a1 + a2*a2); // x
-            B(i, i*3+1)= -1.0 * (qSin(tmpAlpha) * qSin(tmpBeta) * a1 + qCos(tmpAlpha) * a2) / qSqrt(a1*a1 + a2*a2); // y
-            B(i, i*3+2)= -1.0 * (qCos(tmpAlpha) * qSin(tmpBeta) * a1 - qSin(tmpAlpha) * a2) / qSqrt(a1*a1 + a2*a2); // z
+      // A.print();
+
+            B(i, i*3)= -1.0 * cos(tmpBeta) * a1 / sqrt(a1*a1 + a2*a2); // x
+            B(i, i*3+1)= -1.0 * (sin(tmpAlpha) * sin(tmpBeta) * a1 + cos(tmpAlpha) * a2) / sqrt(a1*a1 + a2*a2); // y
+            B(i, i*3+2)= -1.0 * (cos(tmpAlpha) * sin(tmpBeta) * a1 - sin(tmpAlpha) * a2) / sqrt(a1*a1 + a2*a2); // z
         }
-
+       // A.print();
+        B.print();
         //Aufstellen des Widerspruchsvektors
         for(int i = 0; i < n; i++)
         {
@@ -219,8 +242,9 @@ bool Cylinder::fit(QList<Point3D> points)
     }
     //v.print();
     //Verbesserter Beobachtungsvektor
+ //   L0.print();
     L0=L0+v;
-
+  //  L0.print();
     for(int i = 0; i < n; i++)
     {
        samplePoints.at(i).setVerb(v(i*3),v(i*3+1),v(i*3+2));
@@ -238,9 +262,9 @@ bool Cylinder::fit(QList<Point3D> points)
 void Cylinder::calcApproximation(QList<Point3D> points)
 {
 
-    this->nForm.x = 5;
-    this->nForm.y = 4;
-    this->nForm.alpha = 50;
-    this->nForm.beta = 30;
-    this->nForm.radius = 2;
+    this->nForm.x = -534.4;
+    this->nForm.y = -787.7;
+    this->nForm.alpha = 0.84;
+    this->nForm.beta = -0.21;
+    this->nForm.radius = 0.4;
 }
