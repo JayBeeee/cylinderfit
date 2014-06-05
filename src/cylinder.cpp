@@ -62,11 +62,14 @@ bool Cylinder::fit(QList<Point3D> points)
 
     vec L(n*3); //Beobachtungen
     vec v(n*3); //Näherungswerte für Verbesserungen
+    v=v.zeros();
     vec L0(n*3); //Beobachtungen + Näherungswerte für Verbesserungen
     vec X0(5); //Näherungswerte für Unbekannte (r, X0, Y0, alpha, beta)
     vec x(5); //Zuschläge für Unbekannte
-    mat B(n, 3*n); //Ableitungen nach (L+v0)
     mat A(n, 5); //Ableitungen nach Unbekannten
+    mat B(n, 3*n); //Ableitungen nach Beobachtungen +v0
+    B=B.zeros();
+
     vec w(n); //Widerspruchsvektor
 
 
@@ -104,8 +107,9 @@ bool Cylinder::fit(QList<Point3D> points)
 
 
         //Verbesserter Beobachtungsvektor
-        L0=L0;//+v; //TODO Hier ist ein Fehler wenn man v addiert nimmt er nur den letzten Wert
-    // L0.print();
+
+        L0=L0+v; //TODO Hier ist ein Fehler wenn man v addiert nimmt er nur den letzten Wert
+     L0.print();
         // Aufstellen der Rotationsmatrizen
         mat RotAlpha(3, 3);
         mat RotBeta(3, 3);
@@ -139,17 +143,19 @@ bool Cylinder::fit(QList<Point3D> points)
         double tmpAlpha = X0(3);
         double tmpBeta = X0(4);
        //  qDebug()<<QString::number(X0(4));
-      // qDebug()<<QString::number(tmpBeta);
+   //  qDebug()<<QString::number(tmpBeta);
         for(int i = 0; i < n; i++)
         {
             double tmpX = L(i*3);
             double tmpY = L(i*3+1);
             double tmpZ = L(i*3+2);
+            // qDebug()<<QString::number(tmpX0);
+
 
             double a1 = tmpX0 + tmpX * cos(tmpBeta) + tmpY * sin(tmpAlpha) * sin(tmpBeta) + tmpZ * cos(tmpAlpha) * sin(tmpBeta);
             double a2 = tmpY0 + tmpY * cos(tmpAlpha) - tmpZ * sin(tmpAlpha);
-
-             //qDebug()<<QString::number(a2);
+           //qDebug()<<QString::number(a1);
+          // qDebug()<<QString::number(a2);
 
             //radius,X0,Y0,Alpha,Beta
             A(i, 0)= 1.0; //radius
@@ -159,14 +165,15 @@ bool Cylinder::fit(QList<Point3D> points)
             A(i, 4)= -1.0 * (tmpY * sin(tmpAlpha) * cos(tmpBeta) - tmpX * sin(tmpBeta) + tmpZ * cos(tmpAlpha) * cos(tmpBeta)) * a1 / sqrt(a1*a1 + a2*a2); // beta
 
       // A.print();
-
-            B(i, i*3)= -1.0 * cos(tmpBeta) * a1 / sqrt(a1*a1 + a2*a2); // x
-            B(i, i*3+1)= -1.0 * (sin(tmpAlpha) * sin(tmpBeta) * a1 + cos(tmpAlpha) * a2) / sqrt(a1*a1 + a2*a2); // y
-            B(i, i*3+2)= -1.0 * (cos(tmpAlpha) * sin(tmpBeta) * a1 - sin(tmpAlpha) * a2) / sqrt(a1*a1 + a2*a2); // z
+           // B=B*0.0;
+            B(i, i*3)=1.0*( -1.0 * cos(tmpBeta) * a1 / sqrt(a1*a1 + a2*a2)); // x
+            B(i, i*3+1)= 1.0*(-1.0 * (sin(tmpAlpha) * sin(tmpBeta) * a1 + cos(tmpAlpha) * a2) / sqrt(a1*a1 + a2*a2)); // y
+            B(i, i*3+2)=1.0* (-1.0 * (cos(tmpAlpha) * sin(tmpBeta) * a1 - sin(tmpAlpha) * a2) / sqrt(a1*a1 + a2*a2)); // z
         }
        // A.print();
-        B.print();
+       // B.print();
         //Aufstellen des Widerspruchsvektors
+
         for(int i = 0; i < n; i++)
         {
 
@@ -180,13 +187,15 @@ bool Cylinder::fit(QList<Point3D> points)
             Ntransform_punkt_i(0)= Ntransform_punkt_i(0) + X0(1);
             Ntransform_punkt_i(1)= Ntransform_punkt_i(1) + X0(2);
 
+
+
             //genäherter Radius des Zylinders minus Abstand Punkt i zur z-Achse ist der Widerspruch
             double widerspruch = X0(0) - qSqrt(Ntransform_punkt_i(0)*Ntransform_punkt_i(0) + Ntransform_punkt_i(1)*Ntransform_punkt_i(1));
 
             w(i)=widerspruch;
         }
 
-
+ B.print();
 
         //rechte Seite  (Beobachtungen+Unbekannte als Dimension)
         vec rechteSeite(n+5);
@@ -198,6 +207,9 @@ bool Cylinder::fit(QList<Point3D> points)
         //Aufstellen der Normalgleichungsmatrix N-Matric
 
         mat B_BT = B * B.t();
+
+       // B_BT.print();
+
         mat AT = A.t();
         mat N(n+5, n+5);
         for(int i = 0; i < (n+5); i++){
@@ -220,10 +232,12 @@ bool Cylinder::fit(QList<Point3D> points)
         }
 
         //Inverse von N
+       N.print();
         mat N_inv=N.i();
-
+      // N_inv.print();
         //Ausgleichungsrechnung
         vec ergebnis = -1.0 * N_inv * rechteSeite;
+       // ergebnis.print();
 
         //Weiterverarbeitung der Ergebnisse der Ausgleichung
 
@@ -233,6 +247,7 @@ bool Cylinder::fit(QList<Point3D> points)
         for(int i = n; i < n+5; i++){
             x(i-n)= ergebnis(i);
         }
+
         for(int i = 0; i < n; i++){
              k(i)=ergebnis(i);
         }
@@ -240,14 +255,14 @@ bool Cylinder::fit(QList<Point3D> points)
         v = B.t() * k;
         z++;
     }
-    //v.print();
+   //v.print();
     //Verbesserter Beobachtungsvektor
  //   L0.print();
     L0=L0+v;
   //  L0.print();
     for(int i = 0; i < n; i++)
     {
-       samplePoints.at(i).setVerb(v(i*3),v(i*3+1),v(i*3+2));
+       samplePoints.at(i).setVerb(v(i),v(i+1),v(i+2));
 
       // samplePoints.at(i).verb->print();
 
