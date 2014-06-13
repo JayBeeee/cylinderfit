@@ -62,7 +62,7 @@ bool DataImporter::exportXYZ(QList<Point3D> points, QIODevice *d)
 
      return true;
 }
-//HIER neu!!!!!!!!!!!!!!!!!!!!
+
 
 bool DataImporter::exportTransformationsparameter(NormalForm nForm, QIODevice *d)
 {
@@ -81,6 +81,47 @@ bool DataImporter::exportTransformationsparameter(NormalForm nForm, QIODevice *d
              <<"Y=  "<<nForm.y<<"\n"
              <<"Alpha=  "<<nForm.alpha<<"\n"
              <<"Beta=  "<<nForm.beta<<"\n";
+     d->close();
+
+     return true;
+}
+
+
+bool DataImporter::exportVRML(NormalForm nForm,QIODevice *d)
+{
+    //open and check device
+    if (!d->open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+        return false;
+    }
+
+     QTextStream ausgabe(d);
+     QList<Point3D> points;
+/*
+     vec yWerte(points.size());
+
+     foreach(Point3D p,points)
+     {
+     vec adjustedPoint=p.getAdjustedPoint();
+     yWerte=adjustedPoint.at(1);
+     }
+
+     double maxY = yWerte.max() ;
+     double minY = yWerte.min() ;
+
+     double height=maxY-minY;
+    // <<"Separator { \n"
+*/
+     ausgabe <<"#VRML V1.0 ascii \n"
+
+             <<"DEF BackgroundColor Info{ \n"
+
+             <<"string \"1 1 1\""<<"}"<<"\n"
+             <<"Cylinder {\n"
+             <<"radius "<< nForm.radius <<"\n"
+             //<<"height" <<height<<"\n"
+             <<"parts ALL }\n";
+
      d->close();
 
      return true;

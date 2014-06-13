@@ -9,58 +9,24 @@ Cylinder::Cylinder()
 
 bool Cylinder::fit(QList<Point3D> points)
 {
+    RandomFactory r;
+    r.distribution= new  std::uniform_int_distribution<int> (0, points.size()-1);
+    std::random_device rd;
+    r.generator= new std::default_random_engine ( rd() );
+
     QList<Point3D>samplePoints;
+    r.indizes= new QList<int>;
+    r.grenze= new int(10000);
 
-     //Hier werden zufällige Punkte für die Ausgleichung ausgewählt,
-    //da 47000 Punkte die B-Matrix sprengen --> zwar konnte man in Armadillo
-    //die Einstellungen vornehmen um auf 64bit um zustellen,
-    //jedoch reichen selbst 16GB-Arbeitsspeicher nicht aus!
+    r.zaehler=new int(0);
+    qDebug()<<"Start subsampling";
+    this->subsamplePointList(r,points,samplePoints);
 
-    std::default_random_engine generator;
-    std::uniform_int_distribution<int> distribution(0,points.size());
-    int indizes[1000];
-    int grenze=1000;
-    //Wenn die Punktwolke größer als der Grenzwert ist,dann
-    if (grenze<points.size())
-    {
-      for(int i=0; i<grenze;i++)
-        {
-             //Erzeuge eine Zufallszahl und schreibe diese in den Array indizes
-             int randomIndex =  distribution(generator);
-             indizes[i]=randomIndex;
-             if (i<1)
-             {
-                samplePoints.append(points.at(randomIndex));
-             }
-             else
-             {
-                 for (int j=0; j<i;)
-                 {
-                    if (randomIndex == indizes[j])
-                    {
-                        int randomIndex =  distribution(generator);  //TODO nur einmal überprüft aber ...
-                        indizes[i]=randomIndex;
-                        break;
-                    }
-                    else
-                    {
-                        j++;
-                    }
-                  }
-                samplePoints.append(points.at(randomIndex));
-             }
-          }
-     //Ansonsten werden alle Punkte für die Approximation verwendet
-    }else
-    {
-        for (int i=0; i<points.size(); i++)
-        {
-           samplePoints.append(points[i]);
-        }
-    }
 
+    qDebug()<<"Start approximation";
     this->calcApproximation(samplePoints);
 
+    qDebug()<<"Start fit";
     int n = samplePoints.size();
     //qDebug()<<QString::number(n);
 
@@ -232,17 +198,17 @@ bool Cylinder::fit(QList<Point3D> points)
       // N_inv.print();
         //Ausgleichungsrechnung
         vec ergebnis = -1.0 * N_inv * rechteSeite;
-       // ergebnis.print();
+       //ergebnis.print();
 
         //Weiterverarbeitung der Ergebnisse der Ausgleichung
 
         //get results
         vec k(n);
-        //Zuschläge für die Unbekannten stehen unten im Ergebnisvektor
-        for(int i = n; i < n+5; i++){
-            x(i-n)= ergebnis(i);
-        }
 
+        for(int i = n; i < n+5; i++){
+            x(i-n)= ergebnis(i-n);
+        }
+        x.print();
         for(int i = 0; i < n; i++){
              k(i)=ergebnis(i);
         }
@@ -280,4 +246,57 @@ void Cylinder::calcApproximation(QList<Point3D> points)
     this->nForm.alpha = 0.84;
     this->nForm.beta = -0.21;
     this->nForm.radius = 0.4;
+}
+
+bool Cylinder::subsamplePointList(RandomFactory &r,QList<Point3D> &points,QList<Point3D> &samplePoints)
+{
+
+    //Hier werden zufällige Punkte für die Ausgleichung ausgewählt,
+   //da 47000 Punkte die B-Matrix sprengen --> zwar konnte man in Armadillo
+   //die Einstellungen vornehmen um auf 64bit um zustellen,
+   //jedoch reichen selbst 16GB-Arbeitsspeicher nicht aus!
+
+   //std::default_random_engine generator;
+  // std::uniform_int_distribution<int> distribution(0,points.size());
+
+
+
+
+   //Wenn die Punktwolke größer als der Grenzwert ist,dann
+   if (*r.grenze<points.size())
+   {
+       //qDebug()<<zaehler;
+
+            //Erzeuge eine Zufallszahl und schreibe diese in den Array indizes
+           int randomIndex =  r.distribution->operator ()(*r.generator);
+
+
+
+             if (r.indizes->contains(randomIndex))//Returns true if contains
+                {
+                  return subsamplePointList(r,points,samplePoints);
+               }
+
+             if (*r.zaehler<*r.grenze)
+             {
+               //qDebug()<<randomIndex;
+               samplePoints.append(points.at(randomIndex));
+               r.indizes->append(randomIndex);
+               *r.zaehler+=1;
+
+
+               return subsamplePointList(r,points,samplePoints);
+               }
+               else
+               {
+                   return true;
+               }
+
+
+    //Ansonsten werden alle Punkte für die Approximation verwendet
+   }else
+   {
+          samplePoints=points;
+          return true;
+   }
 }

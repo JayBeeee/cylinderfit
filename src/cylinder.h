@@ -22,6 +22,17 @@ struct NormalForm
     double radius;
 };
 
+struct RandomFactory
+{
+
+
+    QList<int> *indizes;
+    int *grenze;
+    int *zaehler;
+    std::uniform_int_distribution<int> *distribution;
+    std::default_random_engine *generator;
+};
+
 class Cylinder
 {
 public:
@@ -39,6 +50,9 @@ public:
 
 private:
     void calcApproximation(QList<Point3D> points);
+
+    bool subsamplePointList(RandomFactory &r,QList<Point3D> &points,QList<Point3D> &samplePoints);
+
 
 };
 
