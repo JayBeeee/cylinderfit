@@ -30,7 +30,7 @@ public:
 
     static bool exportTransformationsparameter(NormalForm,QIODevice*d);
 
-    static bool exportVRML(NormalForm,QIODevice*d);
+    static bool exportVRML(QList<Point3D>,NormalForm,QIODevice*d);
 };
 
 #endif // DATAIMPORTER_H

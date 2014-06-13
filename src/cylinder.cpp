@@ -16,7 +16,7 @@ bool Cylinder::fit(QList<Point3D> points)
 
     QList<Point3D>samplePoints;
     r.indizes= new QList<int>;
-    r.grenze= new int(10000);
+    r.grenze= new int(100);
 
     r.zaehler=new int(0);
     qDebug()<<"Start subsampling";

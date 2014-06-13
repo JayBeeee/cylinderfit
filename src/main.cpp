@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
 
     QString path = qApp->applicationDirPath();
 
-    path=QString(path+"/zylinder01.pts");
+    path=QString(path+"/zylinder06.pts");
     qDebug()<<path;
 
 
@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
 
   export_d = new QFile(export_path3);
 
-  DataImporter::exportVRML(c.nForm,export_d);
+  DataImporter::exportVRML(c.observations,c.nForm,export_d);
 
 
 
