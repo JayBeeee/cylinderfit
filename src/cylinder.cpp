@@ -12,53 +12,57 @@ bool Cylinder::fit(QList<Point3D> points)
     QList<Point3D>samplePoints;
 
      //Hier werden zufällige Punkte für die Ausgleichung ausgewählt,
-    //da 47000 Punkte die B-Matrix sprengen --> zwar konnte man in Armadillp
+    //da 47000 Punkte die B-Matrix sprengen --> zwar konnte man in Armadillo
     //die Einstellungen vornehmen um auf 64bit um zustellen,
     //jedoch reichen selbst 16GB-Arbeitsspeicher nicht aus!
 
     std::default_random_engine generator;
     std::uniform_int_distribution<int> distribution(0,points.size());
-
-    int indizes[1003];
- /*   for(int i=0; i<440;i++)
+    int indizes[1000];
+    int grenze=1000;
+    //Wenn die Punktwolke größer als der Grenzwert ist,dann
+    if (grenze<points.size())
     {
-         int randomIndex =  distribution(generator);
-         indizes[i]=randomIndex;
-         if (i<1)
-         {
-            samplePoints.append(points.at(randomIndex));
-         }
-         else
-         {
-             for (int j=0; j<i;)
+      for(int i=0; i<grenze;i++)
+        {
+             //Erzeuge eine Zufallszahl und schreibe diese in den Array indizes
+             int randomIndex =  distribution(generator);
+             indizes[i]=randomIndex;
+             if (i<1)
              {
-                if (randomIndex == indizes[j])
-                {
-                    int randomIndex =  distribution(generator);
-                    indizes[i]=randomIndex;
-                    break;
-                }
-                else
-                {
-                    j++;
-                }
-              }
-             samplePoints.append(points.at(randomIndex));
-
-         }
-         // qDebug << samplePoints.at(i).xyz->print;
-    }
-*/
-    //TODO < länge
-    for (int i=0; i<18; i++)
+                samplePoints.append(points.at(randomIndex));
+             }
+             else
+             {
+                 for (int j=0; j<i;)
+                 {
+                    if (randomIndex == indizes[j])
+                    {
+                        int randomIndex =  distribution(generator);  //TODO nur einmal überprüft aber ...
+                        indizes[i]=randomIndex;
+                        break;
+                    }
+                    else
+                    {
+                        j++;
+                    }
+                  }
+                samplePoints.append(points.at(randomIndex));
+             }
+          }
+     //Ansonsten werden alle Punkte für die Approximation verwendet
+    }else
     {
-       samplePoints.append(points.at(i));
+        for (int i=0; i<points.size(); i++)
+        {
+           samplePoints.append(points[i]);
+        }
     }
 
     this->calcApproximation(samplePoints);
 
     int n = samplePoints.size();
-//qDebug()<<QString::number(n);
+    //qDebug()<<QString::number(n);
 
     vec L(n*3); //Beobachtungen
     vec v(n*3); //Näherungswerte für Verbesserungen
@@ -90,26 +94,18 @@ bool Cylinder::fit(QList<Point3D> points)
         L.at(i*3+2)=samplePoints.at(i).xyz->at(2);
     }
 
-//L.print();
-
-    //TODO do while iteration
 
     L0= L;
-//  L0.print();
     int z=0;
     int iteration=1;
     while(z < iteration)
     {
         //Unbekannten neu berechnen
         X0=X0+x;
-      //X0.print();
-        //x.print();
 
 
         //Verbesserter Beobachtungsvektor
-
-        L0=L0+v; //TODO Hier ist ein Fehler wenn man v addiert nimmt er nur den letzten Wert
-     L0.print();
+        L0=L0+v;
         // Aufstellen der Rotationsmatrizen
         mat RotAlpha(3, 3);
         mat RotBeta(3, 3);
@@ -142,8 +138,7 @@ bool Cylinder::fit(QList<Point3D> points)
         double tmpY0 = X0(2);
         double tmpAlpha = X0(3);
         double tmpBeta = X0(4);
-       //  qDebug()<<QString::number(X0(4));
-   //  qDebug()<<QString::number(tmpBeta);
+
         for(int i = 0; i < n; i++)
         {
             double tmpX = L(i*3);
@@ -170,10 +165,10 @@ bool Cylinder::fit(QList<Point3D> points)
             B(i, i*3+1)= 1.0*(-1.0 * (sin(tmpAlpha) * sin(tmpBeta) * a1 + cos(tmpAlpha) * a2) / sqrt(a1*a1 + a2*a2)); // y
             B(i, i*3+2)=1.0* (-1.0 * (cos(tmpAlpha) * sin(tmpBeta) * a1 - sin(tmpAlpha) * a2) / sqrt(a1*a1 + a2*a2)); // z
         }
-       // A.print();
-       // B.print();
-        //Aufstellen des Widerspruchsvektors
 
+
+
+        //Aufstellen des Widerspruchsvektors
         for(int i = 0; i < n; i++)
         {
 
@@ -195,10 +190,10 @@ bool Cylinder::fit(QList<Point3D> points)
             w(i)=widerspruch;
         }
 
- B.print();
 
         //rechte Seite  (Beobachtungen+Unbekannte als Dimension)
         vec rechteSeite(n+5);
+        rechteSeite=rechteSeite.zeros();
         for(int i = 0; i < n; i++)
         {
             rechteSeite(i)= w(i);
@@ -232,7 +227,7 @@ bool Cylinder::fit(QList<Point3D> points)
         }
 
         //Inverse von N
-       N.print();
+       //N.print();
         mat N_inv=N.i();
       // N_inv.print();
         //Ausgleichungsrechnung
@@ -257,21 +252,24 @@ bool Cylinder::fit(QList<Point3D> points)
     }
    //v.print();
     //Verbesserter Beobachtungsvektor
- //   L0.print();
     L0=L0+v;
-  //  L0.print();
+
     for(int i = 0; i < n; i++)
     {
        samplePoints.at(i).setVerb(v(i),v(i+1),v(i+2));
-
-      // samplePoints.at(i).verb->print();
-
-
+      // samplePoints.at(i).verb->print()
     }
     this->observations=samplePoints;
 
+    //Unbekannten neu berechnen
+    X0=X0+x;
 
-     return true;
+    this->nForm.x = X0(1);
+    this->nForm.y = X0(2);
+    this->nForm.alpha = X0(3);
+    this->nForm.beta = X0(4);
+    this->nForm.radius =  X0(0);
+    return true;
 }
 
 void Cylinder::calcApproximation(QList<Point3D> points)

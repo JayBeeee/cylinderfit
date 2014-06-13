@@ -6,7 +6,7 @@
 #include <QList>
 #include <QDebug>
 #include "point3d.h"
-
+#include "cylinder.h"
 
 class DataImporter
 {
@@ -28,6 +28,7 @@ public:
 
     static bool exportXYZ(QList<Point3D>,QIODevice *d);
 
+    static bool exportTransformationsparameter(NormalForm,QIODevice*d);//Hier ist was neu!!!!!!!!!!!!!!!!!!
 };
 
 #endif // DATAIMPORTER_H

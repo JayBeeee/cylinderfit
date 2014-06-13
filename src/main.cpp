@@ -50,5 +50,17 @@ int main(int argc, char *argv[])
 
     DataImporter::exportXYZ(c.observations,export_d);
 
+  //Hier ist was neu!!!!!!!!!!!!!!!!!!!!!!!!
+     QString export_path2 = qApp->applicationDirPath();
+
+    export_path2=QString(export_path2+"/transforamtionsparameter.pts");
+    qDebug()<<export_path2;
+
+
+   export_d = new QFile(export_path2);
+
+   DataImporter::exportTransformationsparameter(c.nForm,export_d);
+
+
     return a.exec();
 }
