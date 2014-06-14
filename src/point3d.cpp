@@ -25,10 +25,5 @@ vec Point3D::getAdjustedPoint() const
 {
     vec adjustedPoint(3);
     adjustedPoint=*this->xyz+*this->verb;
-    /*
-    adjustedPoint(0)=xyz->at(0)+verb->at(0);
-    adjustedPoint(1)=xyz->at(1)+verb->at(1);
-    adjustedPoint(2)=xyz->at(2)+verb->at(2);
-    */
     return adjustedPoint;
 }

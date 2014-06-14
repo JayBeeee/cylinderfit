@@ -31,8 +31,6 @@ QList<Point3D> DataImporter::importXYZ(QIODevice *d)
             tmpPoint.xyz->at(2)=list.at(2).toDouble();
 
             punktListe.append(tmpPoint);
-
-           // qDebug() << QString::number(tmpPoint.xyz->at(2));
         }
 
     }
@@ -109,9 +107,9 @@ bool DataImporter::exportVRML(QList<Point3D> points,NormalForm nForm,QIODevice *
      }
 
     double maxY = max(yWerte);
-    double minY = min(yWerte);
+    double minY = abs(min(yWerte));
     double height=maxY-minY;
-    qDebug()<<height;
+
 
      ausgabe <<"#VRML V1.0 ascii \n"
 

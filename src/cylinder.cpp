@@ -16,7 +16,9 @@ bool Cylinder::fit(QList<Point3D> points)
 
     QList<Point3D>samplePoints;
     r.indizes= new QList<int>;
-    r.grenze= new int(100);
+
+    //Bitte nicht mehr als 10000 angeben!
+    r.grenze= new int(10000);
 
     r.zaehler=new int(0);
     qDebug()<<"Start subsampling";
@@ -49,8 +51,13 @@ bool Cylinder::fit(QList<Point3D> points)
     X0(3)=nForm.alpha;
     X0(4)=nForm.beta;
 
-    X0.print();
-
+    //X0.print();
+    qDebug()<<"Transformationsparameter vor der Ausgleichung";
+    qDebug()<<QString(" x "+QString::number(nForm.x));
+    qDebug()<<QString(" y "+QString::number(nForm.y));
+    qDebug()<<QString(" alpha "+QString::number(nForm.alpha));
+    qDebug()<<QString(" beta "+QString::number(nForm.beta));
+    qDebug()<<QString(" radius "+QString::number(nForm.radius));
 
     //Aufstellen des Beobachtungsvektors
     for(int i = 0; i < n; i++)
@@ -208,7 +215,7 @@ bool Cylinder::fit(QList<Point3D> points)
         for(int i = n; i < n+5; i++){
             x(i-n)= ergebnis(i-n);
         }
-        x.print();
+
         for(int i = 0; i < n; i++){
              k(i)=ergebnis(i);
         }
@@ -216,7 +223,7 @@ bool Cylinder::fit(QList<Point3D> points)
         v = B.t() * k;
         z++;
     }
-   //v.print();
+
     //Verbesserter Beobachtungsvektor
     L0=L0+v;
 
@@ -256,30 +263,22 @@ bool Cylinder::subsamplePointList(RandomFactory &r,QList<Point3D> &points,QList<
    //die Einstellungen vornehmen um auf 64bit um zustellen,
    //jedoch reichen selbst 16GB-Arbeitsspeicher nicht aus!
 
-   //std::default_random_engine generator;
-  // std::uniform_int_distribution<int> distribution(0,points.size());
-
-
-
 
    //Wenn die Punktwolke größer als der Grenzwert ist,dann
    if (*r.grenze<points.size())
    {
-       //qDebug()<<zaehler;
-
             //Erzeuge eine Zufallszahl und schreibe diese in den Array indizes
            int randomIndex =  r.distribution->operator ()(*r.generator);
 
 
-
+            //Überprüfe ob die Zahl bereits vorhanden falls ja rufe dich neu auf
              if (r.indizes->contains(randomIndex))//Returns true if contains
                 {
                   return subsamplePointList(r,points,samplePoints);
                }
-
+            //Prüfe ob ausreichend Punkte erzeugt wurden falls nein rufe dich neu auf
              if (*r.zaehler<*r.grenze)
              {
-               //qDebug()<<randomIndex;
                samplePoints.append(points.at(randomIndex));
                r.indizes->append(randomIndex);
                *r.zaehler+=1;
@@ -289,6 +288,7 @@ bool Cylinder::subsamplePointList(RandomFactory &r,QList<Point3D> &points,QList<
                }
                else
                {
+
                    return true;
                }
 

@@ -15,6 +15,7 @@ int main(int argc, char *argv[])
 
     QString path = qApp->applicationDirPath();
 
+    //Bitte Eingabedatei waehlen
     path=QString(path+"/zylinder06.pts");
     qDebug()<<path;
 
@@ -27,13 +28,13 @@ int main(int argc, char *argv[])
 
      qDebug()<<QString(QString::number(points.size())+" Punkte eingelesen");
 
-     qDebug()<<"starte Auslgeichung";
+     qDebug()<<"starte Zylinderauslgeichungsprogramm";
 
      Cylinder c;
      c.fit(points);
 
      qDebug()<<"Ausgleichung fertig";
-
+     qDebug()<<"Transformationsparameter nach der Ausgleichung";
      qDebug()<<QString(" x "+QString::number(c.nForm.x));
      qDebug()<<QString(" y "+QString::number(c.nForm.y));
      qDebug()<<QString(" alpha "+QString::number(c.nForm.alpha));
